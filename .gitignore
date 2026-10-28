@@ -1,0 +1,28 @@
+# Dependencies & build output
+node_modules
+dist
+dist-ssr
+*.local
+
+# Environment secrets (NEVER commit real .env files)
+.env
+.env.*
+!.env.example
+
+# Python backend (for FastAPI / SQLite later)
+backend/__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+ENV/
+*.db
+*.sqlite
+*.sqlite3
+
+# OS & IDE files
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+Thumbs.db
+*.log
