@@ -1,20 +1,12 @@
-export type LetterCategory =
-  | 'A Little Hope'
-  | 'A Memory'
-  | 'For a Stranger'
-  | 'Something Unsaid'
-  | 'A Thank You';
-
 export interface Letter {
   id: string;
-  category: LetterCategory;
   message: string;
-  locationName: string;
-  detailLocation: string; // e.g. "Folded into bench #14"
+  locationName?: string;
+  detailLocation?: string; // Optional detail/nook location
   timeAgo: string;
   feltCount: number;
-  xPercent: number; // For demo SVG map positioning
-  yPercent: number;
+  xPercent: number; // Demo SVG map percentage (0-100)
+  yPercent: number; // Demo SVG map percentage (0-100)
   coordinates: {
     lat: number;
     lng: number;

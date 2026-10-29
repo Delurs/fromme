@@ -3,7 +3,6 @@ import type { Letter } from '../types/letter';
 export const SAMPLE_LETTERS: Letter[] = [
   {
     id: 'ltr-1',
-    category: 'A Little Hope',
     message: 'A little reminder for whoever needs it today: you’re allowed to begin again. The years you spent trying to survive were not wasted years; they were the soil.',
     locationName: 'Washington Sq Park, NY',
     detailLocation: 'Folded into bench #14',
@@ -15,7 +14,6 @@ export const SAMPLE_LETTERS: Letter[] = [
   },
   {
     id: 'ltr-2',
-    category: 'Something Unsaid',
     message: 'I still visit this overlook whenever the city gets too loud. I hope wherever you are now, you found the quiet you were always searching for.',
     locationName: 'High Line Overlook, NY',
     detailLocation: 'Under the wooden railing',
@@ -27,7 +25,6 @@ export const SAMPLE_LETTERS: Letter[] = [
   },
   {
     id: 'ltr-3',
-    category: 'For a Stranger',
     message: 'You do not have to carry everything all at once. Drink some water, listen to the trees, and let today be enough.',
     locationName: 'Central Park Ramble, NY',
     detailLocation: 'Tucked inside stone bridge',
@@ -39,7 +36,6 @@ export const SAMPLE_LETTERS: Letter[] = [
   },
   {
     id: 'ltr-4',
-    category: 'A Thank You',
     message: 'To the stranger who shared their umbrella with me outside this cafe in the downpour last October: I passed your kindness forward.',
     locationName: 'West Village Cafe, NY',
     detailLocation: 'Tucked in brick crevice',
@@ -51,7 +47,6 @@ export const SAMPLE_LETTERS: Letter[] = [
   },
   {
     id: 'ltr-5',
-    category: 'A Memory',
     message: 'We promised we would meet here in ten years. It has been seven. I still think about that promise every time the ferry horn echoes.',
     locationName: 'Brooklyn Heights Promenade, NY',
     detailLocation: 'Under the south lamppost',

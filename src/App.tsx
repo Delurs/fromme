@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Header from './components/Header';
 import { AboutModal } from './components/AboutModal';
 import { HelpModal } from './components/HelpModal';
+import { ComposeModal } from './components/ComposeModal';
 import { SAMPLE_LETTERS } from './data/sampleLetters';
 import type { Letter } from './types/letter';
 
@@ -19,8 +20,19 @@ export default function App() {
   const [feltIds, setFeltIds] = useState<string[]>([]);
   const [savedIds, setSavedIds] = useState<string[]>([]);
 
+  // Navigation Modals
   const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
+
+  // Compose & Map Placement State
+  const [isComposeOpen, setIsComposeOpen] = useState(false);
+  const [pendingMessage, setPendingMessage] = useState<string | null>(null);
+  const [preselectedMapPoint, setPreselectedMapPoint] = useState<{ x: number; y: number } | null>(null);
+  const [mapClickPromptPoint, setMapClickPromptPoint] = useState<{ x: number; y: number } | null>(null);
+  const [isPickingLocationMode, setIsPickingLocationMode] = useState(false);
+  const [placementConfirmationPoint, setPlacementConfirmationPoint] = useState<{ x: number; y: number } | null>(null);
+
+  const mapContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (isDark) {
@@ -32,18 +44,129 @@ export default function App() {
     }
   }, [isDark]);
 
-  // Close modals on Escape key
+  // Close modals or cancel placement on Escape key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setIsAboutOpen(false);
         setIsHelpOpen(false);
+        setIsComposeOpen(false);
+        setMapClickPromptPoint(null);
+        handleCancelPlacement();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  // Click on the map container to get percentage coordinates
+  const handleMapCanvasClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    // If clicking on an existing pin or floating UI card, ignore canvas click
+    if (
+      (e.target as HTMLElement).closest('[data-pin-element]') ||
+      (e.target as HTMLElement).closest('[data-floating-card]') ||
+      (e.target as HTMLElement).closest('button')
+    ) {
+      return;
+    }
+
+    if (!mapContainerRef.current) return;
+    const rect = mapContainerRef.current.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const clickY = e.clientY - rect.top;
+
+    // Use high-precision percentages to prevent integer-rounding coordinate snapping
+    const xPercent = (clickX / rect.width) * 100;
+    const yPercent = (clickY / rect.height) * 100;
+
+    // Keep within safe map boundaries without arbitrary margin snapping
+    const boundedX = Number(Math.max(1, Math.min(99, xPercent)).toFixed(2));
+    const boundedY = Number(Math.max(2, Math.min(98, yPercent)).toFixed(2));
+
+    if (isPickingLocationMode) {
+      // Flow B: User already wrote note and is now confirming placement
+      setPlacementConfirmationPoint({ x: boundedX, y: boundedY });
+      setMapClickPromptPoint(null);
+    } else {
+      // Flow A: User simply clicked the map first
+      setMapClickPromptPoint({ x: boundedX, y: boundedY });
+      setPlacementConfirmationPoint(null);
+    }
+  };
+
+  // Flow A Action: User confirms "Leave a letter here?" -> "Write Note"
+  const handleOpenComposeFromMapPrompt = () => {
+    if (!mapClickPromptPoint) return;
+    setPreselectedMapPoint(mapClickPromptPoint);
+    setMapClickPromptPoint(null);
+    setIsComposeOpen(true);
+  };
+
+  // Flow A Send: Release note with already locked coordinates
+  const handleSendWithCoords = (message: string, coords: { x: number; y: number }) => {
+    const newLetter: Letter = {
+      id: `ltr-${Date.now()}`,
+      message,
+      locationName: 'Secret Spot',
+      timeAgo: 'Just now',
+      feltCount: 0,
+      xPercent: coords.x,
+      yPercent: coords.y,
+      coordinates: {
+        lat: 40.73 + (coords.y / 100 - 0.5) * 0.05,
+        lng: -73.99 + (coords.x / 100 - 0.5) * 0.05,
+      },
+    };
+
+    setLetters((prev) => [newLetter, ...prev]);
+    setSelectedLetter(newLetter);
+    setIsComposeOpen(false);
+    setPreselectedMapPoint(null);
+  };
+
+  // Flow B Step 1: User types note and clicks "Choose Spot on Map →"
+  const handleProceedToPickLocation = (message: string) => {
+    setPendingMessage(message);
+    setIsComposeOpen(false);
+    setIsPickingLocationMode(true);
+    setPlacementConfirmationPoint(null);
+  };
+
+  // Flow B Send: User confirms placement preview on map
+  const handleConfirmPlacementSend = () => {
+    if (!pendingMessage || !placementConfirmationPoint) return;
+
+    const newLetter: Letter = {
+      id: `ltr-${Date.now()}`,
+      message: pendingMessage,
+      locationName: 'Chosen Location',
+      timeAgo: 'Just now',
+      feltCount: 0,
+      xPercent: placementConfirmationPoint.x,
+      yPercent: placementConfirmationPoint.y,
+      coordinates: {
+        lat: 40.73 + (placementConfirmationPoint.y / 100 - 0.5) * 0.05,
+        lng: -73.99 + (placementConfirmationPoint.x / 100 - 0.5) * 0.05,
+      },
+    };
+
+    setLetters((prev) => [newLetter, ...prev]);
+    setSelectedLetter(newLetter);
+
+    // Reset Flow B state
+    setPendingMessage(null);
+    setPlacementConfirmationPoint(null);
+    setIsPickingLocationMode(false);
+  };
+
+  // Flow B Cancel placement
+  const handleCancelPlacement = () => {
+    setPendingMessage(null);
+    setPlacementConfirmationPoint(null);
+    setIsPickingLocationMode(false);
+  };
+
+  // Reactions
   const handleToggleFelt = (letterId: string) => {
     const alreadyFelt = feltIds.includes(letterId);
     setFeltIds((prev) =>
@@ -73,7 +196,7 @@ export default function App() {
   };
 
   return (
-    <div className="w-full bg-[#fbf9f5] dark:bg-[#121110] min-h-screen text-[#1b1c1a] dark:text-[#E8E4DD] transition-colors duration-300">
+    <div className="w-full bg-[#fbf9f5] dark:bg-[#121110] min-h-screen text-[#1b1c1a] dark:text-[#E8E4DD] transition-colors duration-300 select-none">
       {/* Fixed Top Header */}
       <Header
         isDark={isDark}
@@ -84,8 +207,13 @@ export default function App() {
 
       {/* Main Full-Screen Map Container */}
       <main className="w-full min-h-screen pt-16">
-        <div className="relative w-full h-[calc(100vh-4rem)] overflow-hidden bg-[#F5F2EB] dark:bg-[#161513]">
-          {/* Cartographic Map SVG */}
+        <div
+          ref={mapContainerRef}
+          onClick={handleMapCanvasClick}
+          className={`relative w-full h-[calc(100vh-4rem)] overflow-hidden bg-[#F5F2EB] dark:bg-[#161513] ${isPickingLocationMode ? 'cursor-crosshair' : 'cursor-default'
+            }`}
+        >
+          {/* Cartographic SVG Map Background */}
           <svg
             className="absolute inset-0 w-full h-full object-cover pointer-events-none transition-colors duration-300"
             fill="none"
@@ -134,7 +262,7 @@ export default function App() {
           </svg>
 
           {/* Top-Left Area Count Badge */}
-          <div className="absolute top-6 left-6 z-20 flex items-center gap-3">
+          <div data-floating-card className="absolute top-6 left-6 z-20 flex items-center gap-3">
             <div className="bg-[#fbf9f5]/90 dark:bg-[#1D1B18]/90 backdrop-blur-md px-4 py-2 rounded-full shadow-xs flex items-center gap-2.5 border border-[#eae8e4]/60 dark:border-[#302B25] transition-colors">
               <span className="w-2 h-2 rounded-full bg-[#83523d] dark:bg-[#E2A78F] inline-block animate-pulse" />
               <span className="text-[11px] font-bold uppercase tracking-wider text-[#1b1c1a] dark:text-[#E8E4DD]">
@@ -144,55 +272,181 @@ export default function App() {
           </div>
 
           {/* Top-Right Map Controls with Custom Artwork Icons */}
-          <div className="absolute top-6 right-6 z-20 flex items-center gap-1.5 bg-[#fbf9f5]/90 dark:bg-[#1D1B18]/90 backdrop-blur-md p-1.5 rounded-full shadow-md border border-[#eae8e4]/60 dark:border-[#302B25] transition-colors">
+          <div data-floating-card className="absolute top-6 right-6 z-20 flex items-center gap-1.5 bg-[#fbf9f5]/90 dark:bg-[#1D1B18]/90 backdrop-blur-md p-1.5 rounded-full shadow-md border border-[#eae8e4]/60 dark:border-[#302B25] transition-colors">
             <button
               type="button"
-              className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-[#efeeea] dark:hover:bg-[#2C2824] transition-all cursor-pointer p-1.5 hover:scale-105 active:scale-95"
+              className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-[#efeeea] dark:hover:bg-[#2C2824] transition-all cursor-pointer p-1.5 hover:scale-105 active:scale-95"
               title="Zoom in"
             >
               <img
                 src="/zoom_in.png"
                 alt="Zoom in"
-                className="w-5 h-5 object-contain"
+                className="w-6 h-6 object-contain"
               />
             </button>
             <button
               type="button"
-              className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-[#efeeea] dark:hover:bg-[#2C2824] transition-all cursor-pointer p-1.5 hover:scale-105 active:scale-95"
+              className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-[#efeeea] dark:hover:bg-[#2C2824] transition-all cursor-pointer p-1.5 hover:scale-105 active:scale-95"
               title="Zoom out"
             >
               <img
                 src="/zoom_out.png"
                 alt="Zoom out"
-                className="w-5 h-5 object-contain"
+                className="w-6 h-6 object-contain"
               />
             </button>
             <span className="w-[1px] h-4 bg-[#d6c2bb]/60 dark:bg-[#3E3831] mx-0.5" />
             <button
               type="button"
-              className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-[#efeeea] dark:hover:bg-[#2C2824] transition-all cursor-pointer p-1.5 hover:scale-105 active:scale-95"
+              className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-[#efeeea] dark:hover:bg-[#2C2824] transition-all cursor-pointer p-1.5 hover:scale-105 active:scale-95"
               title="Locate Me"
             >
               <img
                 src="/wanderer_compass.png"
                 alt="Locate Me"
-                className="w-5 h-5 object-contain"
+                className="w-6 h-6 object-contain"
               />
             </button>
           </div>
 
-          {/* Letter Markers on Map */}
+          {/* Top-Center Notification Banner for Flow B Location Selection */}
+          {isPickingLocationMode && (
+            <div
+              data-floating-card
+              className="absolute top-6 left-1/2 -translate-x-1/2 z-30 flex items-center gap-3 bg-[#83523d] dark:bg-[#A9664E] text-white px-5 py-2.5 rounded-full shadow-2xl animate-bounce"
+            >
+              <span className="material-symbols-outlined text-[18px]">touch_app</span>
+              <span className="text-xs font-semibold">
+                Click anywhere on the map to set your letter's location
+              </span>
+              <button
+                type="button"
+                onClick={handleCancelPlacement}
+                className="ml-2 text-xs opacity-80 hover:opacity-100 underline cursor-pointer"
+              >
+                Cancel
+              </button>
+            </div>
+          )}
+
+          {/* Flow A: Map Click Prompt ("Leave a letter here?") */}
+          {mapClickPromptPoint && !isPickingLocationMode && (
+            <>
+              {/* Location stamp with bottom tip accurately touching the cursor */}
+              <div
+                style={{ left: `${mapClickPromptPoint.x}%`, top: `${mapClickPromptPoint.y}%` }}
+                className="absolute -translate-x-1/2 -translate-y-full pointer-events-none z-30 select-none"
+              >
+                <img
+                  src="/location_stamp.png"
+                  alt="Location stamp"
+                  className="w-9 h-auto object-contain drop-shadow-md block"
+                />
+              </div>
+
+              {/* Popover Card */}
+              <div
+                data-floating-card
+                style={{ left: `${mapClickPromptPoint.x}%`, top: `${mapClickPromptPoint.y}%` }}
+                className="absolute -translate-x-1/2 -translate-y-full -mt-16 z-40 bg-[#fbf9f5] dark:bg-[#1E1C19] border border-[#83523d]/40 dark:border-[#E2A78F]/40 p-3 rounded-xl shadow-2xl flex items-center gap-2.5 animate-in fade-in zoom-in-95"
+              >
+                <img
+                  src="/fountain_pen.png"
+                  alt="Fountain pen"
+                  className="w-5 h-5 object-contain"
+                />
+                <span className="text-xs font-semibold text-[#1b1c1a] dark:text-[#EDE8E1] whitespace-nowrap">
+                  Leave a letter here?
+                </span>
+                <button
+                  type="button"
+                  onClick={handleOpenComposeFromMapPrompt}
+                  className="px-3 py-1 bg-[#83523d] dark:bg-[#A9664E] text-white text-xs font-semibold rounded-lg hover:scale-105 active:scale-95 transition-all cursor-pointer shadow-xs"
+                >
+                  Write Note
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMapClickPromptPoint(null)}
+                  className="px-2 py-1 text-xs text-[#84746d] hover:text-[#1b1c1a] dark:hover:text-[#EDE8E1] transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+              </div>
+            </>
+          )}
+
+          {/* Flow B: Temporary Glowing Preview Pin & Confirmation Card ("Send" vs "Cancel") */}
+          {placementConfirmationPoint && isPickingLocationMode && (
+            <>
+              {/* Glowing Preview Pin */}
+              <div
+                style={{ left: `${placementConfirmationPoint.x}%`, top: `${placementConfirmationPoint.y}%` }}
+                className="absolute -translate-x-1/2 -translate-y-1/2 pointer-events-none z-30"
+              >
+                <span className="absolute -inset-4 rounded-full bg-[#83523d]/35 dark:bg-[#E2A78F]/35 animate-ping" />
+                <span className="absolute -inset-2 rounded-full bg-[#83523d]/20 dark:bg-[#E2A78F]/25 animate-pulse" />
+                <div className="relative w-12 h-12 rounded-full bg-[#83523d] dark:bg-[#A9664E] shadow-2xl ring-4 ring-[#fbf9f5] dark:ring-[#1E1C19] flex items-center justify-center p-2">
+                  <img
+                    src="/pin_open_letter.png"
+                    alt="Preview letter pin"
+                    className="w-7 h-7 object-contain animate-bounce"
+                  />
+                </div>
+              </div>
+
+              {/* Confirmation Card */}
+              <div
+                data-floating-card
+                style={{ left: `${placementConfirmationPoint.x}%`, top: `${placementConfirmationPoint.y}%` }}
+                className="absolute -translate-x-1/2 -translate-y-full -mt-7 z-40 bg-[#fbf9f5] dark:bg-[#1E1C19] border border-[#83523d] dark:border-[#E2A78F] p-3.5 rounded-xl shadow-2xl flex items-center gap-3 animate-in fade-in zoom-in-95"
+              >
+                <img
+                  src="/fountain_pen.png"
+                  alt="Fountain pen"
+                  className="w-5 h-5 object-contain"
+                />
+                <div>
+                  <p className="text-xs font-bold text-[#1b1c1a] dark:text-[#EDE8E1] whitespace-nowrap">
+                    Place your letter here?
+                  </p>
+                </div>
+                <div className="flex items-center gap-1.5 ml-2">
+                  <button
+                    type="button"
+                    onClick={handleCancelPlacement}
+                    className="px-3 py-1.5 rounded-lg text-xs font-semibold text-[#52443e] dark:text-[#A89F95] hover:bg-[#efeeea] dark:hover:bg-[#25221F] transition-colors cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleConfirmPlacementSend}
+                    className="px-4 py-1.5 rounded-lg bg-[#83523d] dark:bg-[#A9664E] text-white text-xs font-bold hover:scale-105 active:scale-95 transition-all shadow-md cursor-pointer"
+                  >
+                    Send
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Existing Letter Markers on Map */}
           {letters.map((letter) => {
             const isSelected = selectedLetter.id === letter.id;
 
             return (
               <div
                 key={letter.id}
-                onClick={() => setSelectedLetter(letter)}
+                data-pin-element
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedLetter(letter);
+                  setMapClickPromptPoint(null);
+                }}
                 style={{ left: `${letter.xPercent}%`, top: `${letter.yPercent}%` }}
-                className={`absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer transition-transform ${
-                  isSelected ? 'z-20 scale-105' : 'z-10 hover:scale-110'
-                }`}
+                className={`absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer transition-transform ${isSelected ? 'z-20 scale-105' : 'z-10 hover:scale-110'
+                  }`}
               >
                 {/* Active marker animated ping halo */}
                 {isSelected && (
@@ -204,16 +458,15 @@ export default function App() {
 
                 <div className="relative flex flex-col items-center">
                   <div
-                    className={`rounded-full flex items-center justify-center transition-all ${
-                      isSelected
-                        ? 'w-11 h-11 bg-[#83523d] dark:bg-[#A9664E] shadow-xl ring-4 ring-[#fbf9f5] dark:ring-[#1E1C19] p-2'
-                        : 'w-9 h-9 bg-white dark:bg-[#25221F] shadow-md ring-2 ring-[#d6c2bb]/60 dark:ring-[#443D36] p-1.5 hover:shadow-lg'
-                    }`}
+                    className={`rounded-full flex items-center justify-center transition-all ${isSelected
+                      ? 'w-12 h-12 bg-[#83523d] dark:bg-[#A9664E] shadow-xl ring-4 ring-[#fbf9f5] dark:ring-[#1E1C19] p-2'
+                      : 'w-10 h-10 bg-white dark:bg-[#25221F] shadow-md ring-2 ring-[#d6c2bb]/60 dark:ring-[#443D36] p-1.5 hover:shadow-lg'
+                      }`}
                   >
                     <img
                       src={isSelected ? '/pin_open_letter.png' : '/pin_folded_note.png'}
                       alt={isSelected ? 'Open letter pin' : 'Folded note pin'}
-                      className={`${isSelected ? 'w-6 h-6' : 'w-5 h-5'} object-contain`}
+                      className={`${isSelected ? 'w-7 h-7' : 'w-6 h-6'} object-contain`}
                     />
                   </div>
 
@@ -228,23 +481,20 @@ export default function App() {
           })}
 
           {/* Floating Selected Note Card (Bottom-Left) */}
-          {selectedLetter && (
-            <div className="absolute left-4 sm:left-8 bottom-24 z-20 max-w-md w-[calc(100%-2rem)] sm:w-[420px] bg-[#fbf9f5]/95 dark:bg-[#1E1C19]/95 backdrop-blur-md rounded-2xl p-5 shadow-2xl border border-[#eae8e4]/60 dark:border-[#342F29] transition-colors duration-300">
+          {selectedLetter && !isPickingLocationMode && (
+            <div
+              data-floating-card
+              className="absolute left-4 sm:left-8 bottom-24 z-20 max-w-md w-[calc(100%-2rem)] sm:w-[420px] bg-[#fbf9f5]/95 dark:bg-[#1E1C19]/95 backdrop-blur-md rounded-2xl p-5 shadow-2xl border border-[#eae8e4]/60 dark:border-[#342F29] transition-colors duration-300"
+            >
               <div className="flex items-center justify-between pb-2.5 mb-2.5 border-b border-[#eae8e4]/60 dark:border-[#2D2823]">
-                <div className="flex items-center gap-2">
-                  <span className="text-[11px] font-bold uppercase tracking-widest text-[#83523d] dark:text-[#E2A78F]">
-                    Selected Note
-                  </span>
-                  <span className="text-[#d6c2bb] dark:text-[#524943]">•</span>
-                  <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-[#dbe6d7] dark:bg-[#2A352C] text-[#151e15] dark:text-[#C5D8C8] font-semibold uppercase">
-                    {selectedLetter.category}
-                  </span>
-                </div>
+                <span className="text-[11px] font-bold uppercase tracking-widest text-[#83523d] dark:text-[#E2A78F]">
+                  Selected Note
+                </span>
                 <div className="flex items-center gap-1.5 text-[#52443e] dark:text-[#9A9086] text-[11px] font-semibold">
                   <img
                     src="/pocket_watch.png"
                     alt="Time"
-                    className="w-4 h-4 object-contain"
+                    className="w-5 h-5 object-contain"
                   />
                   <span>{selectedLetter.timeAgo}</span>
                 </div>
@@ -254,20 +504,26 @@ export default function App() {
                 <p className="font-['Playfair_Display'] text-[17px] text-[#1b1c1a] dark:text-[#EDE8E1] leading-relaxed italic mb-2">
                   “{selectedLetter.message}”
                 </p>
-                <div className="flex items-center gap-1.5 text-[#52443e] dark:text-[#9A9086] text-[12px]">
-                  <img
-                    src="/location_stamp.png"
-                    alt="Location"
-                    className="w-4 h-4 object-contain shrink-0"
-                  />
-                  <span className="font-medium text-[#1b1c1a] dark:text-[#DCD5CB]">
-                    {selectedLetter.locationName}
-                  </span>
-                  <span className="text-[#d6c2bb] dark:text-[#524943]">—</span>
-                  <span className="text-[#84746d] dark:text-[#8C8279] text-[11px]">
-                    {selectedLetter.detailLocation}
-                  </span>
-                </div>
+                {selectedLetter.locationName && (
+                  <div className="flex items-center gap-2 text-[#52443e] dark:text-[#9A9086] text-[12px]">
+                    <img
+                      src="/location_stamp.png"
+                      alt="Location"
+                      className="w-5 h-5 object-contain shrink-0"
+                    />
+                    <span className="font-medium text-[#1b1c1a] dark:text-[#DCD5CB]">
+                      {selectedLetter.locationName}
+                    </span>
+                    {selectedLetter.detailLocation && (
+                      <>
+                        <span className="text-[#d6c2bb] dark:text-[#524943]">—</span>
+                        <span className="text-[#84746d] dark:text-[#8C8279] text-[11px]">
+                          {selectedLetter.detailLocation}
+                        </span>
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className="flex items-center justify-between pt-2.5 border-t border-[#eae8e4]/60 dark:border-[#2D2823]">
@@ -275,18 +531,16 @@ export default function App() {
                   type="button"
                   onClick={() => handleToggleFelt(selectedLetter.id)}
                   aria-pressed={feltIds.includes(selectedLetter.id)}
-                  className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12px] font-semibold transition-colors shadow-xs cursor-pointer ${
-                    feltIds.includes(selectedLetter.id)
-                      ? 'bg-[#c58b72] text-[#4d2613] dark:bg-[#5E3827] dark:text-[#FFDBCD]'
-                      : 'bg-[#fdcdb3] dark:bg-[#3E291E] text-[#795540] dark:text-[#FFDBCD] hover:bg-[#ffdbcd]'
-                  }`}
+                  className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12px] font-semibold transition-colors shadow-xs cursor-pointer ${feltIds.includes(selectedLetter.id)
+                    ? 'bg-[#c58b72] text-[#4d2613] dark:bg-[#5E3827] dark:text-[#FFDBCD]'
+                    : 'bg-[#fdcdb3] dark:bg-[#3E291E] text-[#795540] dark:text-[#FFDBCD] hover:bg-[#ffdbcd]'
+                    }`}
                 >
                   <img
                     src="/heart_pressed.png"
                     alt="Felt"
-                    className={`w-4 h-4 object-contain transition-transform ${
-                      feltIds.includes(selectedLetter.id) ? 'scale-110' : ''
-                    }`}
+                    className={`w-5 h-5 object-contain transition-transform ${feltIds.includes(selectedLetter.id) ? 'scale-110' : ''
+                      }`}
                   />
                   <span>Felt by {selectedLetter.feltCount}</span>
                 </button>
@@ -299,11 +553,10 @@ export default function App() {
                   <img
                     src="/ribbon_bookmark.png"
                     alt="Bookmark"
-                    className={`w-4 h-4 object-contain ${
-                      savedIds.includes(selectedLetter.id)
-                        ? 'opacity-100 scale-105'
-                        : 'opacity-70 hover:opacity-100'
-                    }`}
+                    className={`w-5 h-5 object-contain ${savedIds.includes(selectedLetter.id)
+                      ? 'opacity-100 scale-105'
+                      : 'opacity-70 hover:opacity-100'
+                      }`}
                   />
                   <span>{savedIds.includes(selectedLetter.id) ? 'Saved' : 'Save note'}</span>
                 </button>
@@ -312,22 +565,40 @@ export default function App() {
           )}
 
           {/* Floating Call To Action (Bottom-Center) with Fountain Pen Icon */}
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30">
-            <button
-              type="button"
-              onClick={() => alert('Compose Letter modal will open here.')}
-              className="inline-flex items-center justify-center gap-3 bg-[#83523d]/85 dark:bg-[#A9664E]/85 text-white hover:bg-[#83523d] dark:hover:bg-[#A9664E] text-base px-10 sm:px-12 min-w-[260px] sm:min-w-[280px] py-3.5 rounded-xl shadow-2xl backdrop-blur-md transition-all transform hover:-translate-y-0.5 tracking-wide border border-[#83523d]/20 dark:border-[#E2A78F]/25 hover:shadow-[0_8px_24px_rgba(131,82,61,0.45)] dark:hover:shadow-[0_8px_24px_rgba(169,102,78,0.4)] cursor-pointer active:scale-95 whitespace-nowrap"
-            >
-              <img
-                src="/fountain_pen.png"
-                alt="Fountain pen"
-                className="w-5 h-5 object-contain"
-              />
-              <span className="font-semibold">Write a Letter</span>
-            </button>
-          </div>
+          {!isPickingLocationMode && (
+            <div data-floating-card className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30">
+              <button
+                type="button"
+                onClick={() => {
+                  setPreselectedMapPoint(null);
+                  setMapClickPromptPoint(null);
+                  setIsComposeOpen(true);
+                }}
+                className="inline-flex items-center justify-center gap-3 bg-[#83523d]/40 dark:bg-[#A9664E]/40 text-white hover:bg-[#83523d]/60 dark:hover:bg-[#A9664E]/60 text-base px-10 sm:px-12 min-w-[260px] sm:min-w-[280px] py-3.5 rounded-xl shadow-2xl backdrop-blur-md transition-all transform hover:-translate-y-0.5 tracking-wide border border-[#83523d]/30 dark:border-[#E2A78F]/30 hover:shadow-[0_8px_24px_rgba(131,82,61,0.35)] dark:hover:shadow-[0_8px_24px_rgba(169,102,78,0.3)] cursor-pointer active:scale-95 whitespace-nowrap"
+              >
+                <img
+                  src="/fountain_pen.png"
+                  alt="Fountain pen"
+                  className="w-6 h-6 object-contain"
+                />
+                <span className="font-semibold">Write a Letter</span>
+              </button>
+            </div>
+          )}
         </div>
       </main>
+
+      {/* Composer Modal */}
+      <ComposeModal
+        isOpen={isComposeOpen}
+        preselectedCoords={preselectedMapPoint}
+        onClose={() => {
+          setIsComposeOpen(false);
+          setPreselectedMapPoint(null);
+        }}
+        onSendWithCoords={handleSendWithCoords}
+        onProceedToPickLocation={handleProceedToPickLocation}
+      />
 
       {/* About & Help Modals */}
       <AboutModal isOpen={isAboutOpen} onClose={() => setIsAboutOpen(false)} />

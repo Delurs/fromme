@@ -19,21 +19,21 @@ export function AboutModal({ isOpen, onClose }: ModalProps) {
           type="button"
           onClick={onClose}
           aria-label="Close modal"
-          className="absolute top-5 right-5 w-8 h-8 rounded-full flex items-center justify-center hover:bg-[#efeeea] dark:hover:bg-[#2C2723] transition-colors cursor-pointer"
+          className="absolute top-5 right-5 w-9 h-9 rounded-full flex items-center justify-center hover:bg-[#efeeea] dark:hover:bg-[#2C2723] transition-colors cursor-pointer"
         >
           <img
             src="/close_soft.png"
             alt="Close"
-            className="w-4 h-4 object-contain opacity-70 hover:opacity-100 transition-opacity"
+            className="w-5 h-5 object-contain opacity-70 hover:opacity-100 transition-opacity"
           />
         </button>
 
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-11 h-11 rounded-xl bg-[#efeeea] dark:bg-[#2A2622] flex items-center justify-center p-2 shadow-2xs">
+          <div className="w-12 h-12 rounded-xl bg-[#efeeea] dark:bg-[#2A2622] flex items-center justify-center p-2 shadow-2xs">
             <img
               src="/pin_open_letter.png"
               alt="About FromMe"
-              className="w-7 h-7 object-contain"
+              className="w-8 h-8 object-contain"
             />
           </div>
           <div>

@@ -20,18 +20,28 @@ export default function Header({
         {/* Left balance spacer */}
         <div className="w-9 sm:w-24 invisible pointer-events-none" />
 
-        {/* Absolute Dead-Center Brand Logo Image (Light & Dark Mode) */}
+        {/* Absolute Dead-Center Brand Logo Image (Simultaneous 300ms Fade Transition) */}
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-auto flex items-center justify-center">
           <a
             href="#"
-            className="flex items-center justify-center text-decoration-none h-10"
+            className="relative flex items-center justify-center text-decoration-none h-10 w-44 sm:w-48"
             aria-label="FromMe"
           >
+            {/* Light Mode Logo */}
             <img
-              key={isDark ? 'dark' : 'light'}
-              src={isDark ? frommeLogoDark : frommeLogo}
+              src={frommeLogo}
               alt="FromMe Logo"
-              className="h-9 sm:h-10 w-auto object-contain"
+              className={`absolute h-9 sm:h-10 w-auto object-contain transition-opacity duration-300 ease-in-out pointer-events-none ${
+                isDark ? 'opacity-0' : 'opacity-100'
+              }`}
+            />
+            {/* Dark Mode Logo */}
+            <img
+              src={frommeLogoDark}
+              alt="FromMe Logo"
+              className={`absolute h-9 sm:h-10 w-auto object-contain transition-opacity duration-300 ease-in-out pointer-events-none ${
+                isDark ? 'opacity-100' : 'opacity-0'
+              }`}
             />
           </a>
         </div>
@@ -42,22 +52,25 @@ export default function Header({
             type="button"
             onClick={onToggleTheme}
             aria-label="Toggle appearance"
-            className="w-9 h-9 rounded-full bg-[#efeeea] dark:bg-[#25221F] hover:bg-[#e4e2de] dark:hover:bg-[#322E2A] flex items-center justify-center border border-[#d6c2bb]/40 dark:border-[#38332D] transition-all cursor-pointer shadow-xs hover:scale-105 p-1.5"
+            className="w-10 h-10 rounded-full bg-[#efeeea] dark:bg-[#25221F] hover:bg-[#e4e2de] dark:hover:bg-[#322E2A] flex items-center justify-center border border-[#d6c2bb]/40 dark:border-[#38332D] transition-all cursor-pointer shadow-xs hover:scale-105 p-1.5"
             title={isDark ? "Switch to light mode" : "Switch to dark mode"}
           >
-            {isDark ? (
-              <img
-                src="/moon_crescent.png"
-                alt="Night mode"
-                className="w-5 h-5 object-contain"
-              />
-            ) : (
+            <div className="relative w-6 h-6 flex items-center justify-center">
               <img
                 src="/sun_warm.png"
                 alt="Light mode"
-                className="w-5 h-5 object-contain"
+                className={`absolute w-6 h-6 object-contain transition-opacity duration-300 ease-in-out ${
+                  isDark ? 'opacity-0' : 'opacity-100'
+                }`}
               />
-            )}
+              <img
+                src="/moon_crescent.png"
+                alt="Night mode"
+                className={`absolute w-6 h-6 object-contain transition-opacity duration-300 ease-in-out ${
+                  isDark ? 'opacity-100' : 'opacity-0'
+                }`}
+              />
+            </div>
           </button>
 
           <span className="w-[1px] h-4 bg-[#d6c2bb]/60 dark:bg-[#3E3831]" />
