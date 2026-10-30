@@ -261,12 +261,12 @@ export default function App() {
             <text className="map-label" fill="#84746D" fontFamily="'Plus Jakarta Sans', sans-serif" fontSize="11" fontWeight="600" letterSpacing="2" textAnchor="middle" x="450" y="610">GREENWICH VILLAGE</text>
           </svg>
 
-          {/* Top-Left Area Count Badge */}
+          {/* Top-Left Active Writers Badge */}
           <div data-floating-card className="absolute top-6 left-6 z-20 flex items-center gap-3">
             <div className="bg-[#fbf9f5]/90 dark:bg-[#1D1B18]/90 backdrop-blur-md px-4 py-2 rounded-full shadow-xs flex items-center gap-2.5 border border-[#eae8e4]/60 dark:border-[#302B25] transition-colors">
               <span className="w-2 h-2 rounded-full bg-[#83523d] dark:bg-[#E2A78F] inline-block animate-pulse" />
               <span className="text-[11px] font-bold uppercase tracking-wider text-[#1b1c1a] dark:text-[#E8E4DD]">
-                {letters.length} Letters Left in this Area
+                Active writers right now
               </span>
             </div>
           </div>
