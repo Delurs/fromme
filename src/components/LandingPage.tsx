@@ -9,6 +9,77 @@ export function LandingPage({
     <div className="w-full min-h-dvh pt-14 sm:pt-16 bg-[#fbf9f5] dark:bg-[#121110] text-[#1b1c1a] dark:text-[#E8E4DD] transition-colors duration-500">
       {/* Hero Section */}
       <section className="relative overflow-hidden border-b border-[#eae8e4] dark:border-[#24211E]">
+        {/* Breathing Wave & Dark Beige Motion Background */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden select-none">
+          {/* Ambient organic dark beige breathing wave SVGs */}
+          <svg
+            className="absolute inset-0 w-full h-full object-cover"
+            viewBox="0 0 1440 800"
+            fill="none"
+            preserveAspectRatio="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <defs>
+              <linearGradient id="darkBeigeWave1" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#C9B89D" stopOpacity="0.45" />
+                <stop offset="50%" stopColor="#BFAF96" stopOpacity="0.32" />
+                <stop offset="100%" stopColor="#A8967C" stopOpacity="0.4" />
+              </linearGradient>
+              <linearGradient id="darkBeigeWave2" x1="100%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#D2C3AA" stopOpacity="0.35" />
+                <stop offset="60%" stopColor="#C2AF91" stopOpacity="0.25" />
+                <stop offset="100%" stopColor="#9E876B" stopOpacity="0.32" />
+              </linearGradient>
+              <linearGradient id="darkBeigeWave3" x1="50%" y1="0%" x2="50%" y2="100%">
+                <stop offset="0%" stopColor="#BAA485" stopOpacity="0.28" />
+                <stop offset="100%" stopColor="#8F785C" stopOpacity="0.18" />
+              </linearGradient>
+
+              {/* Dark mode gradient overrides with rich, deep warm beige/umber tones */}
+              <linearGradient id="darkBeigeWaveDark" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#8C7456" stopOpacity="0.22" />
+                <stop offset="50%" stopColor="#6E563B" stopOpacity="0.18" />
+                <stop offset="100%" stopColor="#533F2B" stopOpacity="0.25" />
+              </linearGradient>
+            </defs>
+
+            {/* Back Wave Layer - Deep breathing oscillation */}
+            <path
+              className="animate-wave-breathe-3 dark:hidden"
+              fill="url(#darkBeigeWave3)"
+              d="M-80,260 C220,160 380,380 680,270 C980,160 1180,340 1520,240 L1520,850 L-80,850 Z"
+            />
+            {/* Mid Wave Layer - Counter oscillation */}
+            <path
+              className="animate-wave-breathe-2 dark:hidden"
+              fill="url(#darkBeigeWave2)"
+              d="M-60,340 C180,440 440,240 760,330 C1080,420 1260,260 1500,320 L1500,850 L-60,850 Z"
+            />
+            {/* Fore Wave Layer - Primary rhythmic wave motion */}
+            <path
+              className="animate-wave-breathe-1 dark:hidden"
+              fill="url(#darkBeigeWave1)"
+              d="M-100,430 C200,310 460,510 820,400 C1180,290 1340,460 1540,380 L1540,850 L-100,850 Z"
+            />
+
+            {/* Dark Mode Wave Layers */}
+            <path
+              className="animate-wave-breathe-2 hidden dark:block"
+              fill="url(#darkBeigeWaveDark)"
+              d="M-60,320 C240,440 480,260 800,350 C1120,440 1280,280 1500,340 L1500,850 L-60,850 Z"
+            />
+            <path
+              className="animate-wave-breathe-1 hidden dark:block"
+              fill="url(#darkBeigeWaveDark)"
+              opacity="0.8"
+              d="M-100,420 C220,300 480,500 840,390 C1200,280 1360,450 1540,370 L1540,850 L-100,850 Z"
+            />
+          </svg>
+
+          {/* Soft blur overlay to give the waves an ethereal, silky breathing feel */}
+          <div className="absolute inset-0 backdrop-blur-[64px] pointer-events-none opacity-60" />
+        </div>
+
         {/* Soft background cartographic hint with living path flow */}
         <div className="absolute inset-0 opacity-40 dark:opacity-20 pointer-events-none">
           <svg
@@ -102,13 +173,7 @@ export function LandingPage({
             {/* Right Column: Sample Postcard Preview */}
             <div className="lg:col-span-5 animate-reveal-up delay-225">
               <div className="relative mx-auto max-w-md lg:max-w-none group">
-                {/* Warm ambient glow behind glass card */}
-                <div className="pointer-events-none absolute -inset-4 rounded-3xl bg-gradient-to-tr from-[#D8C3A5]/50 via-[#CCDBCB]/35 to-white/45 dark:from-[#7B523A]/30 dark:via-[#3B2A1E]/20 dark:to-transparent blur-2xl opacity-85 group-hover:opacity-100 transition-opacity duration-500" />
-
-                {/* Decorative pure frosted glass back card with gentle counter-float */}
-                <div className="animate-float-backcard absolute -inset-2 sm:-inset-3 rounded-3xl bg-white/25 dark:bg-white/[0.04] backdrop-blur-xl border border-white/80 dark:border-white/15 shadow-[inset_0_1.5px_1px_rgba(255,255,255,0.85),0_0_0_1px_rgba(180,148,118,0.16)] dark:shadow-[inset_0_1px_1px_rgba(255,248,238,0.16),0_0_0_1px_rgba(0,0,0,0.45)] pointer-events-none transition-transform duration-500 group-hover:rotate-3 group-hover:scale-[1.01]" />
-
-                <div className="glass-card glass-card-interactive animate-float-slow relative overflow-hidden rounded-2xl p-6 sm:p-7">
+                <div className="glass-card glass-card-interactive relative overflow-hidden rounded-2xl p-6 sm:p-7">
                   {/* Top specular glass glint */}
                   <div className="pointer-events-none absolute inset-x-6 top-0 h-[1px] bg-gradient-to-r from-transparent via-white dark:via-[#E0BE9F]/45 to-transparent" />
 

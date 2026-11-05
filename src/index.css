@@ -599,6 +599,39 @@
   }
 }
 
+@keyframes waveBreathe1 {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scaleY(1);
+    opacity: 0.65;
+  }
+  50% {
+    transform: translate3d(-3%, -18px, 0) scaleY(1.12);
+    opacity: 0.95;
+  }
+}
+
+@keyframes waveBreathe2 {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scaleY(1);
+    opacity: 0.55;
+  }
+  50% {
+    transform: translate3d(3%, 16px, 0) scaleY(1.18);
+    opacity: 0.85;
+  }
+}
+
+@keyframes waveBreathe3 {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scaleX(1);
+    opacity: 0.45;
+  }
+  50% {
+    transform: translate3d(-2%, -10px, 0) scaleX(1.05) scaleY(1.08);
+    opacity: 0.75;
+  }
+}
+
 /* Animation Utility Classes */
 .animate-reveal-up {
   animation: revealUp 0.75s cubic-bezier(0.22, 1, 0.36, 1) both;
@@ -656,6 +689,24 @@
   animation: bannerFloatIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+.animate-wave-breathe-1 {
+  animation: waveBreathe1 11s ease-in-out infinite;
+  transform-origin: 50% 60%;
+  will-change: transform, opacity;
+}
+
+.animate-wave-breathe-2 {
+  animation: waveBreathe2 15s ease-in-out infinite;
+  transform-origin: 40% 50%;
+  will-change: transform, opacity;
+}
+
+.animate-wave-breathe-3 {
+  animation: waveBreathe3 18s ease-in-out infinite;
+  transform-origin: 60% 70%;
+  will-change: transform, opacity;
+}
+
 .group:hover .group-hover-pen {
   animation: penWrite 0.6s ease-in-out;
 }
@@ -682,7 +733,10 @@
   .animate-gentle-bob,
   .animate-soft-halo,
   .animate-heart-pop,
-  .animate-banner-in {
+  .animate-banner-in,
+  .animate-wave-breathe-1,
+  .animate-wave-breathe-2,
+  .animate-wave-breathe-3 {
     animation: none !important;
   }
 }
