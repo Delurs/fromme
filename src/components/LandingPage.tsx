@@ -8,7 +8,7 @@ export function LandingPage({
   return (
     <div className="w-full min-h-dvh pt-14 sm:pt-16 bg-[#fbf9f5] dark:bg-[#121110] text-[#1b1c1a] dark:text-[#E8E4DD] transition-colors duration-500">
       {/* Hero Section */}
-      <section className="relative overflow-hidden border-b border-[#eae8e4] dark:border-[#24211E]">
+      <section className="relative overflow-hidden">
         {/* Breathing Wave & Dark Beige Motion Background */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden select-none">
           {/* Ambient organic dark beige breathing wave SVGs */}
@@ -78,6 +78,9 @@ export function LandingPage({
 
           {/* Soft blur overlay to give the waves an ethereal, silky breathing feel */}
           <div className="absolute inset-0 backdrop-blur-[64px] pointer-events-none opacity-60" />
+
+          {/* Deep gradual gradient fade at the bottom to smoothly transition into the story section */}
+          <div className="absolute inset-x-0 bottom-0 h-48 sm:h-64 bg-gradient-to-b from-transparent via-[#fbf9f5]/70 to-[#fbf9f5] dark:via-[#121110]/70 dark:to-[#121110] pointer-events-none" />
         </div>
 
         {/* Soft background cartographic hint with living path flow */}
@@ -127,11 +130,6 @@ export function LandingPage({
             {/* Left Column: Warm Human Copy */}
             <div className="lg:col-span-7 text-center lg:text-left">
               <div className="glass-pill animate-reveal-up inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full mb-6">
-                <img
-                  src="/pin_open_letter.png"
-                  alt="Little notes"
-                  className="w-6 h-6 sm:w-7 sm:h-7 object-contain animate-gentle-bob"
-                />
                 <span className="text-[11px] font-bold uppercase tracking-widest text-[#7B523A] dark:text-[#C49A76]">
                   Little notes, left in the world
                 </span>
@@ -156,11 +154,6 @@ export function LandingPage({
                   onClick={onExploreMap}
                   className="glass-accent group w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-7 py-3.5 rounded-xl text-[#1b1c1a] dark:text-[#EDE8E1] font-semibold text-sm sm:text-base transition-all duration-300 transform hover:-translate-y-0.5 cursor-pointer active:scale-95"
                 >
-                  <img
-                    src="/wanderer_compass.png"
-                    alt="Explore"
-                    className="w-7 h-7 sm:w-8 sm:h-8 object-contain transition-transform duration-500 ease-out group-hover:rotate-45 group-hover:scale-110"
-                  />
                   <span>Explore the Map</span>
                 </button>
               </div>
@@ -179,21 +172,11 @@ export function LandingPage({
 
                   <div className="glass-divider-b flex items-center justify-between pb-3 mb-4">
                     <div className="flex items-center gap-2.5">
-                      <img
-                        src="/pin_open_letter.png"
-                        alt="Found letter"
-                        className="w-7 h-7 sm:w-8 sm:h-8 object-contain transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6"
-                      />
                       <span className="text-[11px] font-bold uppercase tracking-widest text-[#7B523A] dark:text-[#C49A76]">
                         A Note Found Nearby
                       </span>
                     </div>
                     <div className="flex items-center gap-1.5 text-xs text-[#7A5C43] dark:text-[#9A9086]">
-                      <img
-                        src="/pocket_watch.png"
-                        alt="Time"
-                        className="w-6 h-6 object-contain"
-                      />
                       <span>Left 2 hrs ago</span>
                     </div>
                   </div>
@@ -206,11 +189,6 @@ export function LandingPage({
 
                   <div className="glass-divider-t flex items-center justify-between pt-3 text-xs text-[#5C4433] dark:text-[#9A9086]">
                     <div className="flex items-center gap-1.5">
-                      <img
-                        src="/location_stamp.png"
-                        alt="Location"
-                        className="w-6 h-6 object-contain"
-                      />
                       <span className="font-medium text-[#1b1c1a] dark:text-[#DCD5CB]">
                         Washington Sq Park
                       </span>
@@ -218,11 +196,6 @@ export function LandingPage({
                     </div>
 
                     <div className="inline-flex items-center gap-1.5 text-[#7B523A] dark:text-[#C49A76] font-semibold">
-                      <img
-                        src="/heart_pressed.png"
-                        alt="Felt"
-                        className="w-6 h-6 object-contain transition-transform duration-300 group-hover:scale-115"
-                      />
                       <span>Felt by 428</span>
                     </div>
                   </div>
@@ -234,39 +207,44 @@ export function LandingPage({
       </section>
 
       {/* Brief Humanized Story / Description Section */}
-      <section className="animate-reveal-up delay-300 py-14 sm:py-20 px-4 sm:px-6 md:px-8 max-w-3xl mx-auto text-center">
-        <h2 className="font-['Playfair_Display'] text-2xl sm:text-3xl text-[#1b1c1a] dark:text-[#F5EFE6] mb-4">
+      <section className="animate-reveal-up delay-300 py-16 sm:py-24 px-4 sm:px-6 md:px-8 max-w-3xl mx-auto text-center">
+        <h2 className="font-['Playfair_Display'] text-2xl sm:text-3xl lg:text-4xl text-[#1b1c1a] dark:text-[#F5EFE6] mb-5 tracking-tight">
           Why we leave notes behind
         </h2>
-        <p className="text-[15px] sm:text-base text-[#5C4433] dark:text-[#B8ACA0] leading-relaxed mb-4">
-          Every street corner, park bench, and train platform holds a thousand unspoken stories.
-          Sometimes it’s a thank-you to a stranger who shared their umbrella in the rain.
-          Sometimes it’s a quiet goodbye, a fond memory, or a few kind words for the next person
-          sitting alone with their thoughts.
-        </p>
-        <p className="text-[15px] sm:text-base text-[#5C4433] dark:text-[#B8ACA0] leading-relaxed">
-          FromMe turns the map into a gentle collection of human moments. You don’t need an
-          account or a following—just a place in mind and something honest to say.
-        </p>
+        <div className="space-y-4 text-base sm:text-lg text-[#5C4433] dark:text-[#B8ACA0] leading-relaxed">
+          <p>
+            Every street corner, park bench, and train platform holds a thousand unspoken stories.
+            Sometimes it’s a thank-you to a stranger who shared their umbrella in the rain.
+            Sometimes it’s a quiet goodbye, a fond memory, or a few kind words for the next person
+            sitting alone with their thoughts.
+          </p>
+          <p>
+            FromMe turns the map into a gentle collection of human moments. You don’t need an
+            account or a following—just a place in mind and something honest to say.
+          </p>
+        </div>
       </section>
 
       {/* How It Works (3 Simple Steps) */}
-      <section className="relative overflow-hidden py-12 sm:py-16 border-y border-white/80 dark:border-white/10 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.85),0_0_0_1px_rgba(196,168,142,0.18)] dark:shadow-[inset_0_1px_0_0_rgba(255,248,238,0.08)]">
+      <section className="relative overflow-hidden py-16 sm:py-24">
+        {/* Soft edge fade masks on top and bottom instead of hard cut straight border lines */}
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-[#fbf9f5] dark:from-[#121110] to-transparent z-10" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[#fbf9f5] dark:from-[#121110] to-transparent z-10" />
+
         {/* Soft ambient warm blobs so the glass step cards refract subtle color */}
-        <div className="pointer-events-none absolute -top-20 left-1/4 w-72 h-72 rounded-full bg-[#D8C3A5]/45 dark:bg-[#7B523A]/20 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-20 right-1/4 w-80 h-80 rounded-full bg-[#CCDBCB]/50 dark:bg-[#4A382B]/25 blur-3xl" />
 
         <div className="relative max-w-5xl mx-auto px-4 sm:px-6 md:px-8">
-          <div className="animate-reveal-up delay-300 text-center mb-10 sm:mb-12">
-            <span className="text-[11px] font-bold uppercase tracking-widest text-[#7B523A] dark:text-[#C49A76] block mb-2">
+          <div className="animate-reveal-up delay-300 text-center mb-12 sm:mb-16">
+            <span className="text-[11px] font-bold uppercase tracking-widest text-[#7B523A] dark:text-[#C49A76] block mb-2.5">
               Simple & Human
             </span>
-            <h2 className="font-['Playfair_Display'] text-2xl sm:text-3xl text-[#1b1c1a] dark:text-[#F5EFE6]">
+            <h2 className="font-['Playfair_Display'] text-2xl sm:text-3xl lg:text-4xl text-[#1b1c1a] dark:text-[#F5EFE6] tracking-tight">
               How FromMe works
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 items-stretch">
             {/* Step 1 */}
             <div className="glass-card glass-card-interactive group relative overflow-hidden animate-reveal-up delay-300 rounded-2xl p-6 hover:-translate-y-1.5">
               <div className="pointer-events-none absolute inset-x-6 top-0 h-[1px] bg-gradient-to-r from-transparent via-white dark:via-[#E0BE9F]/45 to-transparent" />
